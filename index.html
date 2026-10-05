@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#050a14" />
+    <title>M V Player · 粒子音乐播放器</title>
+    <link href="https://lf3-static.bytednsdoc.com/obj/eden-cn/ylcylz_fsph_ryhs/ljhwZthlaukjlkulzlp/feisuda/feisuda.svg" rel="shortcut icon"/>
+    <style>
+      /* 防黑屏：React 挂载前先显示原生基础UI */
+      html, body, #root {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: #050a14;
+        color: #e8eef5;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft Yahei', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow: hidden;
+      }
+      .boot-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        gap: 16px;
+        background: radial-gradient(ellipse at center, #0f1a2e 0%, #050a14 70%);
+      }
+      .boot-loading .logo {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(168, 85, 247, 0.15));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: #22d3ee;
+        box-shadow: 0 0 40px rgba(34, 211, 238, 0.3);
+      }
+      .boot-loading .title {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 3px;
+        color: #e8eef5;
+      }
+      .boot-loading .bar {
+        width: 140px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 4px;
+      }
+      .boot-loading .bar::after {
+        content: '';
+        display: block;
+        width: 40%;
+        height: 100%;
+        background: linear-gradient(90deg, #22d3ee, #a855f7);
+        border-radius: 2px;
+        animation: bootProgress 1.5s ease-in-out infinite;
+      }
+      @keyframes bootProgress {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(300%); }
+      }
+      .boot-loading .subtitle {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 4px;
+      }
+      .boot-loading .slow-tip {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 8px;
+        display: none;
+      }
+      .boot-loading.is-slow .slow-tip {
+        display: block;
+      }
+      .boot-loading.is-slow .bar::after {
+        animation-duration: 3s;
+        opacity: 0.6;
+      }
+      .boot-error {
+        position: fixed;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        gap: 16px;
+        padding: 32px;
+        background: radial-gradient(ellipse at center, #1a0f1a 0%, #050a14 70%);
+      }
+      .boot-error.visible {
+        display: flex;
+      }
+      .boot-error .err-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        color: #ef4444;
+        border: 2px solid rgba(239, 68, 68, 0.3);
+      }
+      .boot-error .err-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .boot-error .err-desc {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.6);
+        text-align: center;
+        max-width: 300px;
+        line-height: 1.6;
+      }
+      .boot-error .err-detail {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.35);
+        background: rgba(0, 0, 0, 0.3);
+        padding: 8px 12px;
+        border-radius: 6px;
+        max-width: 320px;
+        width: 100%;
+        word-break: break-all;
+        text-align: left;
+        max-height: 80px;
+        overflow-y: auto;
+      }
+      .boot-retry-btn {
+        padding: 10px 28px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #22d3ee, #a855f7);
+        color: #fff;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+        box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .boot-retry-btn:active {
+        transform: scale(0.97);
+      }
+      .boot-retry-btn.secondary {
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+        font-size: 13px;
+        padding: 8px 20px;
+      }
+      /* React 挂载后自动隐藏 boot loading */
+      body[data-booted="true"] .boot-loading,
+      body[data-booted="true"] .boot-error {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 防黑屏原生兜底（放在 #root 外面，防止 SSR 清空 root 时被一起删掉） -->
+    <div class="boot-loading" id="boot-loading">
+      <div class="logo">M</div>
+      <div class="title">M V PLAYER</div>
+      <div class="bar"></div>
+      <div class="subtitle">粒子音乐播放器 · 正在加载</div>
+      <div class="slow-tip">加载较慢，请稍候…</div>
+    </div>
+    <!-- 错误兜底：JS 加载失败/超时时显示（放在 #root 外面） -->
+    <div class="boot-error" id="boot-error">
+      <div class="err-icon">!</div>
+      <div class="err-title">加载失败</div>
+      <div class="err-desc">资源加载超时或失败，请检查网络后重试</div>
+      <div class="err-detail" id="boot-error-detail">—</div>
+      <button class="boot-retry-btn" id="boot-retry-btn" onclick="window.__bootRetry && window.__bootRetry()">
+        重新加载
+      </button>
+      <button class="boot-retry-btn secondary" onclick="location.replace(location.pathname + '?t=' + Date.now() + location.hash)">
+        强制刷新（绕缓存）
+      </button>
+    </div>
+    <div id="root"></div>
+    <script>
+      (function() {
+        var bootStart = Date.now();
+        var slowThreshold = 5000;   // 5 秒显示"加载较慢"
+        var timeoutThreshold = 8000; // 8 秒硬超时（绝不允许无限转圈）
+        var errorShown = false;
+        var booted = false;
+        var phase = 'html';  // html → js-loaded → react-mounted → booted
+
+        var loadingEl = document.getElementById('boot-loading');
+        var errorEl = document.getElementById('boot-error');
+        var errorDetailEl = document.getElementById('boot-error-detail');
+
+        function showError(msg) {
+          if (booted || errorShown) return;
+          errorShown = true;
+          loadingEl.style.display = 'none';
+          errorEl.classList.add('visible');
+          errorDetailEl.textContent = msg || '未知错误';
+          // 把当前阶段也写进错误详情，帮助排查
+          var phaseInfo = '阶段：' + phase + '，耗时：' + (Date.now() - bootStart) + 'ms';
+          var prev = errorDetailEl.textContent;
+          errorDetailEl.textContent = prev + '\n' + phaseInfo;
+        }
+
+        // 慢网提示
+        setTimeout(function() {
+          if (!booted && !errorShown && loadingEl) {
+            loadingEl.classList.add('is-slow');
+          }
+        }, slowThreshold);
+
+        // 硬超时兜底：8 秒内没 booted 一定有问题，直接报错
+        // 这段逻辑完全内联在 HTML 里，不依赖任何外部 JS
+        var timeoutTimer = setTimeout(function() {
+          showError('首屏渲染超时（>8s）\n主程序可能加载失败或运行报错');
+        }, timeoutThreshold);
+
+        // 重试函数
+        window.__bootRetry = function() {
+          // 带时间戳绕缓存
+          var sep = location.search ? '&' : '?';
+          location.replace(location.pathname + location.search + sep + 't=' + Date.now() + location.hash);
+        };
+
+        // 全局 JS 错误兜底（捕获模块解析错误、运行时错误等）
+        window.addEventListener('error', function(e) {
+          if (booted) return;
+          var msg = e.message || String(e.error || 'unknown');
+          // 忽略非致命错误（如某些第三方脚本）
+          if (msg.indexOf('ResizeObserver') !== -1) return;
+          // 模块加载错误（ESM 的 script.onerror 已经单独处理，这里是兜底）
+          if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+            return; // script onerror 已经处理了
+          }
+          clearTimeout(timeoutTimer);
+          showError('脚本错误：' + String(msg).slice(0, 200));
+        }, true);
+
+        // 资源加载错误（script/link 404 等）— 主 JS 或关键 chunk 加载失败直接报
+        window.addEventListener('error', function(e) {
+          if (booted || errorShown) return;
+          var target = e.target;
+          if (!target) return;
+          var tag = target.tagName;
+          if (tag === 'SCRIPT' || tag === 'LINK') {
+            var src = target.src || target.href;
+            if (src && src.indexOf('assets/') !== -1) {
+              // 主资源加载失败，直接显示错误
+              clearTimeout(timeoutTimer);
+              showError('资源加载失败：\n' + (src ? src.slice(0, 120) : 'unknown'));
+            }
+          }
+        }, true);
+
+        // 暴露给 React 调用：挂载成功时清除所有兜底
+        window.__bootSuccess = function() {
+          booted = true;
+          clearTimeout(timeoutTimer);
+          // 放在 body 上，因为 boot-loading 在 #root 外面
+          document.body.setAttribute('data-booted', 'true');
+        };
+
+        // 主 JS script 标签 onerror 直接触发（ESM 模块加载失败会触发）
+        window.__bootOnScriptError = function(el) {
+          if (booted) return;
+          clearTimeout(timeoutTimer);
+          var src = el && el.src ? el.src : 'unknown';
+          showError('主程序文件加载失败：\n' + src.slice(0, 120));
+        };
+
+        // 主 JS 开始执行时标记（证明 JS 文件加载成功）
+        window.__bootJsLoaded = function() {
+          phase = 'js-loaded';
+        };
+
+        // React 首次渲染完成时调用（证明 React 挂载成功）
+        window.__bootReactMounted = function() {
+          phase = 'react-mounted';
+        };
+
+        // 暴露给 React 调用：首屏真正渲染完成后清除所有兜底
+        window.__bootSuccess = function() {
+          booted = true;
+          phase = 'booted';
+          clearTimeout(timeoutTimer);
+          // 放在 body 上，因为 boot-loading 在 #root 外面
+          document.body.setAttribute('data-booted', 'true');
+        };
+
+        // Promise 未捕获错误（启动阶段的 Promise rejection 也算错误）
+        window.addEventListener('unhandledrejection', function(e) {
+          if (booted) return;
+          var reason = e.reason ? String(e.reason.message || e.reason) : '';
+          if (!reason) return;
+          clearTimeout(timeoutTimer);
+          showError('Promise 异常：' + reason.slice(0, 200));
+        });
+      })();
+    </script>
+    <script type="module" src="/src/index.tsx" onerror="__bootOnScriptError &amp;&amp; __bootOnScriptError(this)"></script>
+  </body>
+</html>
