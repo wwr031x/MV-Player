@@ -492,7 +492,7 @@ export function ListenTogetherProvider({ children }: { children: ReactNode }) {
           }
         };
 
-         const requestSnapshotWithRetry = () => {
+        const requestSnapshotWithRetry = () => {
           if (!svc || !pendingRoom) return;
           const curRoom = (svc as any).getRoom?.(pendingRoom);
           if (curRoom?.currentTrack || (curRoom?.members?.length || 0) > 1) {
