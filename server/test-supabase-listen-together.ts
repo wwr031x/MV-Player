@@ -8,9 +8,9 @@ import { randomUUID } from 'crypto';
 import { logger } from '@lark-apaas/client-toolkit-lite';
 
 // 从环境变量读取 Supabase 配置
-// 使用前请设置环境变量：export SUPABASE_URL=xxx SUPABASE_ANON_KEY=yyy
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
+// 使用前请设置环境变量：export SUPABASE_URL=... SUPABASE_ANON_KEY=...
+const SUPABASE_URL = process.env.SUPABASE_URL ?? '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ?? '';
 
 function makeUser(prefix: string) {
   return { uid: 'uid_' + prefix + '_' + randomUUID().slice(0, 6), nickname: prefix };
