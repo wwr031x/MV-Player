@@ -1289,23 +1289,32 @@ export async function getPersonalizedPlaylists(limit = 12): Promise<IPlaylist[]>
 }
 
 // ===== 漫游 / 智能推荐 =====
-// 网易云 /playmode/intelligence/list 接口，基于指定歌曲生成相似歌曲列表
+// 网易云 /playmode/intelligence/list 接口，基于指定歌曲 + 歌单生成智能播放列表
+// 官方必选参数：id（歌曲id）、pid（歌单id）
+// 可选参数：sid（起始播放的歌曲 id，通常与 id 相同）
 // 需要登录（带 cookie），走登录锁定实例
 // 每次获取 size 首（默认 30），用于「漫游」功能，歌曲快放完时追加下一批
-export async function getIntelligenceList(
-  songId: number | 0,
-  size = 30
-): Promise<{ tracks: ITrack[]; total: number; authRequired: boolean }> {
+export async function getIntelligenceList(params: {
+  id: number;          // 必选：当前歌曲 id（种子歌曲）
+  pid: number;         // 必选：歌单 id（上下文歌单）
+  sid?: number;        // 可选：起始播放歌曲 id，默认与 id 相同
+  size?: number;       // 每次获取数量，默认 30
+}): Promise<{ tracks: ITrack[]; total: number; authRequired: boolean }> {
+  const { id, pid, sid, size = 30 } = params;
   // 不缓存，每次推荐结果不同
   const cookie = getCookie();
   if (!cookie) {
     return { tracks: [], total: 0, authRequired: true };
   }
+  // 官方必选参数校验
+  if (!id || !pid) {
+    return { tracks: [], total: 0, authRequired: false };
+  }
   try {
     const cookieQ = `&cookie=${encodeURIComponent(cookie)}`;
-    const sidParam = songId ? `&sid=${songId}` : '';
+    const sidParam = sid ? `&sid=${sid}` : '';
     const { res } = await fetchLoginLocked(
-      (base) => `${base}/playmode/intelligence/list?count=${size}${sidParam}&timestamp=${Date.now()}${cookieQ}`,
+      (base) => `${base}/playmode/intelligence/list?id=${id}&pid=${pid}&count=${size}${sidParam}&timestamp=${Date.now()}${cookieQ}`,
     );
     const data = await res.json();
     if (data?.code === 301) {
@@ -1314,13 +1323,46 @@ export async function getIntelligenceList(
     const list = data.data || [];
     const songs = list
       .map((item: any) => mapNeteaseSong(item.songInfo || item))
-      .filter((t: ITrack) => t.neteaseId && (songId ? t.neteaseId !== songId : true));
+      .filter((t: ITrack) => t.neteaseId && t.neteaseId !== id);
     for (const s of songs) {
       if (s.neteaseId) memSet(`song:${s.neteaseId}`, s, CACHE_TTL.songDetail);
     }
     return { tracks: songs, total: songs.length, authRequired: false };
   } catch {
     return { tracks: [], total: 0, authRequired: false };
+  }
+}
+
+// ===== 获取用户「我喜欢的音乐」歌单 id =====
+// 用于漫游 pid 兜底：当没有上下文歌单时，用我喜欢的音乐作为 pid
+// 原理：用户歌单列表第一个通常是「我喜欢的音乐」，其 subscribed=false 且为用户创建
+// 走登录锁定实例，带 cookie
+export async function getLikedPlaylistId(uid: number): Promise<{ id: number; authRequired: boolean }> {
+  const cookie = getCookie();
+  if (!cookie) {
+    return { id: 0, authRequired: true };
+  }
+  const cacheKey = `likedPlaylistId:${uid}`;
+  const cached = memGet(cacheKey);
+  if (cached !== undefined) {
+    return { id: cached as number, authRequired: false };
+  }
+  try {
+    const cookieQ = `&cookie=${encodeURIComponent(cookie)}`;
+    const { res } = await fetchLoginLocked(
+      (base) => `${base}/user/playlist?uid=${uid}&limit=1&timestamp=${Date.now()}${cookieQ}`,
+    );
+    const data = await res.json();
+    if (data?.code !== 200 || !data.playlist || data.playlist.length === 0) {
+      return { id: 0, authRequired: data?.code === 301 };
+    }
+    // 网易云用户歌单列表第一个永远是「我喜欢的音乐」
+    const first = data.playlist[0];
+    const id = first.id || 0;
+    if (id) memSet(cacheKey, id, CACHE_TTL.userPlaylists);
+    return { id, authRequired: false };
+  } catch {
+    return { id: 0, authRequired: false };
   }
 }
 
