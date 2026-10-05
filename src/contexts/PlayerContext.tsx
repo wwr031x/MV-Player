@@ -46,7 +46,7 @@ interface PlayerState {
 interface PlayerContextValue extends PlayerState {
   audioElement: HTMLAudioElement | null;
   analyser: AnalyserNode | null;
-  addTracks: (tracks: ITrack[], playFirst?: boolean) => void;
+  addTracks: (tracks: ITrack[], playFirst?: boolean) => { added: number; duplicates: number } | void;
   replaceQueue: (tracks: ITrack[], startIndex?: number) => void;
   removeTrack: (index: number) => void;
   clearQueue: () => void;
@@ -621,8 +621,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // ===== 移除歌曲（index 是全局索引） =====
    const removeTrack = useCallback((index: number) => {
      const newQueue = queueRef.current.filter((_, i) => i !== index);
-     // 在改写 currentIndexRef 之前先记录"移除的是否是当前正在播放的曲目"
-     const removedCurrent = index === currentIndexRef.current;
      let newIndex = currentIndexRef.current;
      if (index < currentIndexRef.current) {
        newIndex = currentIndexRef.current - 1;
@@ -662,7 +660,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
        }));
      }
      // 如果移除了当前歌曲且还有剩余，播放新位置
-     if (removedCurrent && newIndex >= 0 && audioRef.current) {
+     if (index === currentIndexRef.current && newIndex >= 0 && audioRef.current) {
        playListAt(newQueue, newIndex);
      }
    }, [playListAt]);
