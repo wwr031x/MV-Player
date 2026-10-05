@@ -1297,7 +1297,7 @@ export function createCover3DShader(
   }
 
   // ---- 音频分析（输出 0-255 原始值域，与 MR 原版一致；shader 内部按对应比例解读） ----
-  // 注意：beat 通道不再用硬阈值归零，而是"基线 + 超阈值增益"双通道，
+  // 注意：beat 通道不再用硬阈值归零，而是“基线 + 超阈值增益”双通道，
   // 密集鼓点下即使每帧都超阈也保留连续、可见的微幅跳动；
   // 最终 beat 还会与 beatBus.kickEnvelope 混合，确保与呼吸灯同源同步。
   function analyzeAudio(freq: Uint8Array, sens: number): { bass: number; mid: number; treble: number; energy: number; beatRaw: number; bassNorm: number } {
