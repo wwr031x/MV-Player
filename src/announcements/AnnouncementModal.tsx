@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, Bell, History, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { scopedStorage, logger } from '@lark-apaas/client-toolkit-lite';
 import { ANNOUNCEMENTS, type Announcement } from './announcements';
 import { getLatestAnnouncement, hasUnreadAnnouncement, markAnnouncementRead } from '@/lib/announcement';
 

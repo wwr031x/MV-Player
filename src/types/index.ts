@@ -81,8 +81,6 @@ export interface IVisualizerSettings {
     coverDensity: number;
     /** 封面粒子不透明度（0.3-1） */
     coverOpacity: number;
-    /** 封面波浪强度（0-2） */
-    coverWaveIntensity: number;
     /** 封面粒子扭曲强度（0-3） */
     coverTwist: number;
     /** 封面粒子散布强度（0-3） */
