@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode, useState } from 'react';
 import { logger } from '@lark-apaas/client-toolkit-lite';
 
 interface Props {

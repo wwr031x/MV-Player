@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useMemo, memo } from 'react';
+import { logger } from '@lark-apaas/client-toolkit-lite';
 
 interface VirtualListProps<T> {
   items: T[];
