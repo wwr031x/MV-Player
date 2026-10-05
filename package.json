@@ -1,39 +1,35 @@
 {
   "name": "mv-player",
-  "version": "0.1.0",
-  "description": "A web-based audio visualizer player with multiple visualization modes, custom color schemes, video recording export, and group listening feature.",
-  "license": "MIT",
+  "version": "1.0.0",
   "private": false,
-  "type": "module",
-  "author": "MV-Player Contributors",
+  "license": "MIT",
+  "description": "MV Player — 基于 Web 的音频可视化播放器，支持多种可视化效果、自定义配色、视频录制导出和多人一起听功能。",
   "repository": {
     "type": "git",
     "url": "https://github.com/wwr031x/MV-Player.git"
   },
-  "homepage": "https://github.com/wwr031x/MV-Player#readme",
+  "homepage": "https://github.com/wwr031x/MV-Player",
   "bugs": {
     "url": "https://github.com/wwr031x/MV-Player/issues"
   },
   "keywords": [
     "audio-visualizer",
-    "music-visualizer",
+    "music-player",
     "canvas",
-    "threejs",
-    "web-audio-api",
-    "mediarecorder",
-    "video-export",
-    "listen-together",
+    "web-audio",
+    "three.js",
     "react",
     "vite"
   ],
+  "author": "wwr031x",
+  "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "bash scripts/build.sh",
     "typecheck": "tsc -p tsconfig.app.json",
     "lint": "concurrently npm:typecheck npm:lint:eslint",
     "lint:eslint": "eslint src",
-    "precommit": "npm run lint",
-    "prepare": "node scripts/setup-git-hooks.mjs"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@lark-apaas/client-toolkit-lite": "^1.1.30",

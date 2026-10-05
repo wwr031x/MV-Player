@@ -149,9 +149,7 @@ cp .env.example .env.local
 
 ## 📄 许可证
 
-本项目采用 **MIT License** 开源协议 — 详见 [LICENSE](LICENSE) 文件。
-
-允许商业使用、修改、分发和私人使用，仅需保留版权声明和许可声明。
+待选择（用户决定）
 
 ---
 
