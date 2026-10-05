@@ -25,9 +25,8 @@ type Mode = IVisualizerSettings['mode'];
    coverBrightness: number;
    coverParticleSize: number;
    coverDensity: number;
-   coverOpacity: number;
-    coverWaveIntensity: number;
-    coverTwist: number;
+    coverOpacity: number;
+     coverTwist: number;
     coverScatter: number;
     coverSpeed: number;
     coverColorBoost: number;
@@ -71,9 +70,8 @@ function VisualizerLayer({
    coverBrightness,
    coverParticleSize,
    coverDensity,
-   coverOpacity,
-    coverWaveIntensity,
-    coverTwist,
+    coverOpacity,
+     coverTwist,
     coverScatter,
     coverSpeed,
      coverColorBoost,
@@ -360,7 +358,6 @@ function VisualizerLayer({
                 coverParticleSize={coverParticleSize}
                 coverDensity={coverDensity}
                 coverOpacity={coverOpacity}
-                coverWaveIntensity={coverWaveIntensity}
                 coverTwist={coverTwist}
                 coverScatter={coverScatter}
                 coverSpeed={coverSpeed}
