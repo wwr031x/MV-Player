@@ -52,7 +52,7 @@ function log(level, msg, extra) {
 // ===== 发送消息 =====
 
 function send(ws, type, payload = {}, opts = {}) {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+  if (ws.readyState !== WebSocket.OPEN) return false;
   const msg = {
     type,
     payload,
@@ -63,13 +63,7 @@ function send(ws, type, payload = {}, opts = {}) {
     timestamp: Date.now(),
     serverTime: Date.now(),
   };
-  try {
-    ws.send(JSON.stringify(msg));
-  } catch (err) {
-    // 单个连接发送失败（如缓冲区异常/已损坏）不应影响广播循环中的其他成员
-    log('warn', `send() failed to ${type}: ${err.message}`);
-    return false;
-  }
+  ws.send(JSON.stringify(msg));
   return true;
 }
 
@@ -482,7 +476,8 @@ function handleInvite(client, payload, respond) {
     respond({ error: 'toUid is required' }, false);
     return;
   }
-  if (toUid === client.uid) {
+  if (toUid
+ === client.uid) {
     respond({ error: '不能邀请自己' }, false);
     return;
   }
@@ -831,13 +826,8 @@ function handleDisconnect(client) {
     }
   }
 
-  // 仅当 clients 中当前仍是本连接对象时才删除：
-  // 同一 UID 重连时，新连接已覆盖 clients[uid]，旧连接的 close 事件晚到，
-  // 若无条件 delete 会把刚注册的新连接从 clients 里抹掉（后续 sendToUid 全失效）。
-  if (clients.get(client.uid) === client) {
-    clients.delete(client.uid);
-    log('info', `Client removed: ${client.uid} (total: ${clients.size})`);
-  }
+  clients.delete(client.uid);
+  log('info', `Client removed: ${client.uid} (total: ${clients.size})`);
 }
 
 // ===== 心跳与清理 =====
