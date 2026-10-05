@@ -494,7 +494,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
               <div className="grid grid-cols-2 gap-2">
                 {modes3D().map(m => (
                   <button
- key={m.key}
+                    key={m.key}
                      onClick={() => trySet3DMode(m.key)}
                     className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all ${
                       mode === m.key
