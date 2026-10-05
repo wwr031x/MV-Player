@@ -476,8 +476,7 @@ function handleInvite(client, payload, respond) {
     respond({ error: 'toUid is required' }, false);
     return;
   }
-  if (toUid
- === client.uid) {
+  if (toUid === client.uid) {
     respond({ error: '不能邀请自己' }, false);
     return;
   }
