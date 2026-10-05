@@ -6,7 +6,7 @@
 //
 // 上层 Context 只依赖适配器，不直接依赖具体实现。
 
-import { logger } from '@lark-apaas/client-toolkit-lite';
+import { getAppId, logger } from '@lark-apaas/client-toolkit-lite';
 
 export type { IRoomMember, IRoomState, IInvite, IListenTogetherUser } from './listenTogether.ws';
 export { updateLocalUser, getLocalUser } from './listenTogether.user';

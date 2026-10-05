@@ -10,9 +10,6 @@ type CacheEntry = {
   image?: HTMLImageElement;
 };
 
-// 缓存上限：头像按会话内出现的用户有限，但仍加一道 LRU 兜底，避免长时间运行无界膨胀
-const MAX_ENTRIES = 500;
-
 class AvatarImageCache {
   private cache = new Map<string, CacheEntry>();
 
@@ -25,19 +22,11 @@ class AvatarImageCache {
 
     const existing = this.cache.get(url);
     if (existing) {
-      // LRU：命中后挪到末尾，保证最久未用的排到队首被淘汰
-      this.cache.delete(url);
-      this.cache.set(url, existing);
       return existing.status === 'ready' && existing.image ? existing.image : null;
     }
 
     // 触发异步加载
     const entry: CacheEntry = { status: 'loading' };
-    // 超过上限：淘汰最久未访问的队首条目（释放对 HTMLImageElement 的引用）
-    if (this.cache.size >= MAX_ENTRIES) {
-      const oldest = this.cache.keys().next().value;
-      if (oldest !== undefined) this.cache.delete(oldest);
-    }
     this.cache.set(url, entry);
 
     const img = new Image();
