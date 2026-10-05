@@ -587,11 +587,6 @@ export function useBeatService(
     return () => {
       service.subscribers.delete(onStateChange);
       service.pulseSubscribers.delete(onPulse);
-      // 清理 pulse 定时器，避免卸载后 setState
-      if (pulseTimerRef.current) {
-        window.clearTimeout(pulseTimerRef.current);
-        pulseTimerRef.current = null;
-      }
       try {
         getDiagnosticService().setField('beatServiceSubscribers', service.subscribers.size);
       } catch { /* ignore */ }
